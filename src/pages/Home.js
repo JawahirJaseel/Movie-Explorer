@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Grid, Button, CircularProgress, Box, Typography } from "@mui/material";
 import MovieCard from "../components/MovieCard";
@@ -19,7 +19,7 @@ const Home = () => {
   const [rating, setRating] = useState(0);
 
   // Fetch genre list once
-  const fetchGenres = async () => {
+  const fetchGenres = useCallback(async () => {
     try {
       const res = await axios.get(
         `https://api.themoviedb.org/3/genre/movie/list?api_key=${API_KEY}`
@@ -28,10 +28,10 @@ const Home = () => {
     } catch (err) {
       console.error("Error fetching genres:", err);
     }
-  };
+  }, []);
 
   // Fetch movies based on filters + page
-  const fetchMovies = async () => {
+  const fetchMovies = useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get(
@@ -57,20 +57,22 @@ const Home = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, selectedGenre, year, rating]);
 
   // Reset page to 1 on filter change
   useEffect(() => {
     setPage(1);
   }, [selectedGenre, year, rating]);
 
+  // Fetch genres on mount
   useEffect(() => {
     fetchGenres();
-  }, []);
+  }, [fetchGenres]);
 
+  // Fetch movies when page or filters change
   useEffect(() => {
     fetchMovies();
-  }, [page, selectedGenre, year, rating]);
+  }, [fetchMovies]);
 
   const handleLoadMore = () => {
     if (page < totalPages) {
